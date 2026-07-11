@@ -11,7 +11,6 @@ import com.seedfinding.mcfeature.structure.Shipwreck;
 import com.seedfinding.mcfeature.structure.Structure;
 import com.seedfinding.mcfeature.structure.TriangularStructure;
 import com.seedfinding.mcfeature.structure.UniformStructure;
-import kaptainwutax.seedcrackerX.config.ConfigScreen;
 import kaptainwutax.seedcrackerX.cracker.BiomeData;
 import kaptainwutax.seedcrackerX.cracker.DataAddedEvent;
 import kaptainwutax.seedcrackerX.cracker.HashedSeedData;
@@ -21,9 +20,6 @@ import kaptainwutax.seedcrackerX.cracker.decorator.DeepDungeon;
 import kaptainwutax.seedcrackerX.cracker.decorator.Dungeon;
 import kaptainwutax.seedcrackerX.cracker.decorator.EmeraldOre;
 import kaptainwutax.seedcrackerX.cracker.decorator.WarpedFungus;
-import kaptainwutax.seedcrackerX.finder.BlockUpdateQueue;
-import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.screens.Screen;
 
 import java.util.Comparator;
 import java.util.Set;
@@ -35,36 +31,23 @@ public class DataStorage {
     public static final Comparator<Entry<Feature.Data<?>>> SEED_DATA_COMPARATOR = (s1, s2) -> {
         boolean isStructure1 = s1.data.feature instanceof Structure;
         boolean isStructure2 = s2.data.feature instanceof Structure;
-
-        //Structures always come before decorators.
-        if (isStructure1 != isStructure2) {
-            return isStructure2 ? 1 : -1;
-        }
-
-        if (s1.equals(s2)) {
-            return 0;
-        }
-
+        if (isStructure1 != isStructure2) return isStructure2 ? 1 : -1;
+        if (s1.equals(s2)) return 0;
         double diff = getBits(s2.data.feature, false) - getBits(s1.data.feature, false);
         return diff == 0 ? 1 : (int) Math.signum(diff);
     };
+
     public ScheduledSet<Entry<Feature.Data<?>>> baseSeedData = new ScheduledSet<>(SEED_DATA_COMPARATOR);
     public HashedSeedData hashedSeedData = null;
-    public BlockUpdateQueue blockUpdateQueue = new BlockUpdateQueue();
-    public boolean openGui = false;
     protected TimeMachine timeMachine = new TimeMachine(this);
     protected Set<Consumer<DataStorage>> scheduledData = ConcurrentHashMap.newKeySet();
     protected PillarData pillarData = null;
     protected ScheduledSet<Entry<BiomeData>> biomeSeedData = new ScheduledSet<>(null);
 
     public static double getBits(Feature<?, ?> feature, boolean decorators18) {
-        if (feature instanceof UniformStructure<?> s) {
-            return Math.log(s.getOffset() * s.getOffset()) / Math.log(2);
-        } else if (feature instanceof TriangularStructure<?> s) {
-            return Math.log(s.getPeak() * s.getPeak()) / Math.log(2);
-        }
-        if (!decorators18 && feature instanceof Decorator && feature.getVersion().isNewerThan(MCVersion.v1_17_1))
-            return 0;
+        if (feature instanceof UniformStructure<?> s) return Math.log(s.getOffset() * s.getOffset()) / Math.log(2);
+        if (feature instanceof TriangularStructure<?> s) return Math.log(s.getPeak() * s.getPeak()) / Math.log(2);
+        if (!decorators18 && feature instanceof Decorator && feature.getVersion().isNewerThan(MCVersion.v1_17_1)) return 0;
         if (feature instanceof BuriedTreasure) return Math.log(100) / Math.log(2);
         if (feature instanceof DesertWell) return Math.log(1000 * 16 * 16) / Math.log(2);
         if (feature instanceof Dungeon) return Math.log(256 * 16 * 16 * 0.125D) / Math.log(2);
@@ -72,57 +55,40 @@ public class DataStorage {
         if (feature instanceof EmeraldOre) return Math.log(28 * 16 * 16 * 0.5D) / Math.log(2);
         if (feature instanceof EndGateway) return Math.log(700 * 16 * 16 * 7) / Math.log(2);
         if (feature instanceof WarpedFungus) return 0;
-
-        throw new UnsupportedOperationException("go do implement bits count for " + feature.getName() + " you fool");
+        throw new UnsupportedOperationException("missing bit estimate for " + feature.getName());
     }
 
     public void tick() {
-        if (openGui) {
-            ConfigScreen configscreen = new ConfigScreen();
-            Screen screen = configscreen.getConfigScreenByCloth(Minecraft.getInstance().gui.screen());
-            Minecraft.getInstance().gui.setScreen(screen);
-            openGui = false;
-        }
-        if (!this.timeMachine.isRunning) {
-            this.baseSeedData.dump();
-            this.biomeSeedData.dump();
-            blockUpdateQueue.tick();
+        if (this.timeMachine.isRunning) return;
 
-            this.timeMachine.isRunning = true;
+        this.baseSeedData.dump();
+        this.biomeSeedData.dump();
+        this.timeMachine.isRunning = true;
 
-            TimeMachine.SERVICE.submit(() -> {
-                try {
-                    this.scheduledData.removeIf(c -> {
-                        c.accept(this);
-                        return true;
-                    });
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
+        TimeMachine.SERVICE.submit(() -> {
+            try {
+                this.scheduledData.removeIf(c -> {
+                    c.accept(this);
+                    return true;
+                });
+            } finally {
                 this.timeMachine.isRunning = false;
-            });
-        }
+            }
+        });
     }
 
     public synchronized boolean addPillarData(PillarData data, DataAddedEvent event) {
         boolean isAdded = this.pillarData == null;
-
         if (isAdded && data != null) {
             this.pillarData = data;
             this.schedule(event::onDataAdded);
         }
-
         return isAdded;
     }
 
     public synchronized boolean addBaseData(Feature.Data<?> data, DataAddedEvent event) {
         Entry<Feature.Data<?>> e = new Entry<>(data, event);
-
-        if (this.baseSeedData.contains(e)) {
-            return false;
-        }
-
+        if (this.baseSeedData.contains(e)) return false;
         this.baseSeedData.scheduleAdd(e);
         this.schedule(event::onDataAdded);
         return true;
@@ -130,11 +96,7 @@ public class DataStorage {
 
     public synchronized boolean addBiomeData(BiomeData data, DataAddedEvent event) {
         Entry<BiomeData> e = new Entry<>(data, event);
-
-        if (this.biomeSeedData.contains(e)) {
-            return false;
-        }
-
+        if (this.biomeSeedData.contains(e)) return false;
         this.biomeSeedData.scheduleAdd(e);
         this.schedule(event::onDataAdded);
         return true;
@@ -146,7 +108,6 @@ public class DataStorage {
             this.schedule(event::onDataAdded);
             return true;
         }
-
         return false;
     }
 
@@ -160,18 +121,14 @@ public class DataStorage {
 
     public double getBaseBits() {
         double bits = 0.0D;
-
         for (Entry<Feature.Data<?>> e : this.baseSeedData) {
-            if (!(e.data.feature instanceof PillagerOutpost)) {
-                bits += getBits(e.data.feature, false);
-            }
+            if (!(e.data.feature instanceof PillagerOutpost)) bits += getBits(e.data.feature, false);
         }
         return bits;
     }
 
     public double getLiftingBits() {
         double bits = 0.0D;
-
         for (Entry<Feature.Data<?>> e : this.baseSeedData) {
             if (e.data.feature instanceof OldStructure structure) {
                 bits += Math.log(structure.getOffset() * structure.getOffset()) / Math.log(2);
@@ -184,11 +141,8 @@ public class DataStorage {
 
     public double getDecoratorBits() {
         double bits = 0.0D;
-
         for (Entry<Feature.Data<?>> e : this.baseSeedData) {
-            if (e.data.feature instanceof Decorator decorator) {
-                bits += getBits(decorator, true);
-            }
+            if (e.data.feature instanceof Decorator decorator) bits += getBits(decorator, true);
         }
         return bits;
     }
@@ -206,10 +160,8 @@ public class DataStorage {
         this.pillarData = null;
         this.baseSeedData = new ScheduledSet<>(SEED_DATA_COMPARATOR);
         this.biomeSeedData = new ScheduledSet<>(null);
-        //this.hashedSeedData = null;
         this.timeMachine.shouldTerminate = true;
         this.timeMachine = new TimeMachine(this);
-        this.blockUpdateQueue = new BlockUpdateQueue();
     }
 
     public static class Entry<T> {
@@ -225,13 +177,11 @@ public class DataStorage {
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof Entry<?> entry)) return false;
-
             if (this.data instanceof Feature.Data<?> d1 && entry.data instanceof Feature.Data<?> d2) {
                 return d1.feature == d2.feature && d1.chunkX == d2.chunkX && d1.chunkZ == d2.chunkZ;
             } else if (this.data instanceof BiomeData && entry.data instanceof BiomeData) {
                 return this.data.equals(entry.data);
             }
-
             return false;
         }
 
@@ -242,9 +192,7 @@ public class DataStorage {
             } else if (this.data instanceof BiomeData) {
                 return this.data.hashCode();
             }
-
             return super.hashCode();
         }
     }
-
 }
