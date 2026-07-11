@@ -2,6 +2,8 @@
 
 This branch keeps SeedcrackerX's client-side structure discovery and seed-cracking logic while removing active outbound behavior implemented by SeedcrackerX itself.
 
+The goal is compatibility with servers where extra client-mod metadata or active probing may trigger expensive server-side processing. This variant therefore avoids SeedcrackerX-specific outbound communication while preserving the normal Minecraft/Fabric connection needed to play.
+
 ## Removed or disabled
 
 - Startup fetch of the public seed database.
