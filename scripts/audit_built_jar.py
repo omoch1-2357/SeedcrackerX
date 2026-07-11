@@ -3,7 +3,8 @@
 
 The source audit catches obvious regressions before compilation. This audit
 checks what is actually packaged: the client-only metadata, nested Fabric mods,
-and forbidden outbound/networking symbols in SeedcrackerX's own class files.
+and forbidden outbound/networking/discovery symbols in SeedcrackerX's own
+class files.
 """
 
 from __future__ import annotations
@@ -21,7 +22,11 @@ FORBIDDEN_CLASS_TOKENS = (
     b"ServerPlayNetworking",
     b"PayloadTypeRegistry",
     b"CustomPacketPayload",
+    b"ServerboundCustomPayloadPacket",
     b"ServerboundPlayerActionPacket",
+    b"BrandPayload",
+    b"getAllMods",
+    b"getEntrypointContainers",
     b"joinServer",
     b"openUri",
     b"HttpClient",
@@ -32,6 +37,11 @@ FORBIDDEN_CLASS_TOKENS = (
     b"http://",
     b"https://",
 )
+
+ALLOWED_FABRIC_NESTED_MOD_IDS = {
+    "fabric-api-base",
+    "fabric-command-api-v2",
+}
 
 FORBIDDEN_NESTED_MOD_IDS = {
     "cloth-config",
@@ -89,6 +99,8 @@ def main() -> int:
                 report.append(f"  - {mod_id}: {path}")
                 if mod_id in FORBIDDEN_NESTED_MOD_IDS:
                     errors.append(f"forbidden nested mod id: {mod_id} ({path})")
+                if mod_id.startswith("fabric-") and mod_id not in ALLOWED_FABRIC_NESTED_MOD_IDS:
+                    errors.append(f"unexpected nested Fabric mod id: {mod_id} ({path})")
         else:
             report.append("  (none)")
 
