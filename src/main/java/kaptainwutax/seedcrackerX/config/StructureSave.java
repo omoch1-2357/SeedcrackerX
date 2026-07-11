@@ -4,12 +4,11 @@ import com.seedfinding.mcfeature.Feature;
 import com.seedfinding.mcfeature.structure.RegionStructure;
 import com.seedfinding.mcfeature.structure.Structure;
 import kaptainwutax.seedcrackerX.Features;
+import kaptainwutax.seedcrackerX.SeedCracker;
+import kaptainwutax.seedcrackerX.cracker.HashedSeedData;
 import kaptainwutax.seedcrackerX.cracker.storage.DataStorage;
 import kaptainwutax.seedcrackerX.cracker.storage.ScheduledSet;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.Connection;
-import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -65,9 +64,9 @@ public class StructureSave {
                     String[] info = line.split(";");
                     if (info.length != 3) continue;
                     String structureName = info[0];
-                    for (RegionStructure<?,?> idk : Features.STRUCTURE_TYPES) {
-                        if (structureName.equals(idk.getName())) {
-                            result.add(idk.at(Integer.parseInt(info[1]), Integer.parseInt(info[2])));
+                    for (RegionStructure<?,?> structure : Features.STRUCTURE_TYPES) {
+                        if (structureName.equals(structure.getName())) {
+                            result.add(structure.at(Integer.parseInt(info[1]), Integer.parseInt(info[2])));
                             break;
                         }
                     }
@@ -82,17 +81,16 @@ public class StructureSave {
         return result;
     }
 
+    /**
+     * Use information already delivered in the login/respawn packets as the
+     * local persistence key. This avoids touching the live connection or its
+     * remote address merely to name a local file.
+     */
     private static String getWorldName() {
-        Minecraft minecraftClient = Minecraft.getInstance();
-        if (minecraftClient.getConnection() != null) {
-            Connection connection = minecraftClient.getConnection().getConnection();
-            if (connection.isMemoryConnection()) {
-                String address = minecraftClient.getSingleplayerServer().getWorldPath(LevelResource.ROOT).getParent().getFileName().toString();
-                return address.replace("/","_").replace(":", "_")+".txt";
-            } else {
-                return connection.getRemoteAddress().toString().replace("/","_").replace(":","_")+".txt";
-            }
+        HashedSeedData hashedSeedData = SeedCracker.get().getDataStorage().hashedSeedData;
+        if (hashedSeedData == null) {
+            return "unknown-world.txt";
         }
-        return "Invalid.txt";
+        return "hashed-seed-" + Long.toUnsignedString(hashedSeedData.getHashedSeed()) + ".txt";
     }
 }
