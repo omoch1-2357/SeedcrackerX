@@ -1,10 +1,5 @@
 #!/usr/bin/env python3
-"""Fail closed if SeedcrackerX source reintroduces outbound or discovery surface.
-
-This intentionally audits the mod's own Java source. Normal Minecraft/Fabric
-networking performed by the game and loader is outside this source tree and is
-not affected.
-"""
+"""Fail closed if Lucent Pipeline reintroduces non-seed or outbound behavior."""
 
 from __future__ import annotations
 
@@ -28,6 +23,9 @@ FORBIDDEN: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("socket construction", re.compile(r"\bnew\s+(?:Socket|DatagramSocket)\s*\(")),
     ("process launch", re.compile(r"\b(?:ProcessBuilder|Runtime\.getRuntime\s*\(\s*\)\s*\.\s*exec)\b")),
     ("Fabric mod enumeration", re.compile(r"\.\s*(?:getAllMods|getEntrypointContainers)\s*\(")),
+    ("anti-xray implementation", re.compile(r"\b(?:BlockUpdateQueue|antiXrayBypass|AntiXRay|blockUpdateExploit)\b")),
+    ("configuration GUI integration", re.compile(r"\b(?:ConfigScreen|ScModMenuEntry)\b")),
+    ("finder rendering control", re.compile(r"\b(?:FinderControl|shouldRender)\b")),
 )
 
 
@@ -44,12 +42,12 @@ def main() -> int:
                 violations.append(f"{rel}:{line}: {label}: {snippet}")
 
     if violations:
-        print("Passive-only audit failed:", file=sys.stderr)
+        print("Seed-only audit failed:", file=sys.stderr)
         for violation in violations:
             print(f"  {violation}", file=sys.stderr)
         return 1
 
-    print("Passive-only audit passed: no forbidden outbound or mod-discovery primitives found in src/main/java.")
+    print("Seed-only audit passed: no forbidden outbound, x-ray, GUI, or render-control primitives found in src/main/java.")
     return 0
 
 
