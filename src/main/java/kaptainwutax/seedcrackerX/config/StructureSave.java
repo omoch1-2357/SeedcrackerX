@@ -24,9 +24,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class StructureSave {
-    private static final Logger logger = LoggerFactory.getLogger("structureSave");
+    private static final Logger logger = LoggerFactory.getLogger("lucentPipelineStorage");
 
-    public static final Path saveDir = Paths.get(FabricLoader.getInstance().getConfigDir().toFile().toString(), "SeedCrackerX saved structures");
+    public static final Path saveDir = Paths.get(FabricLoader.getInstance().getConfigDir().toFile().toString(), "Lucent Pipeline data");
 
     public static void saveStructures(ScheduledSet<DataStorage.Entry<Feature.Data<?>>> baseData) {
         try {
@@ -46,7 +46,7 @@ public class StructureSave {
                 }
             }
         } catch (IOException e) {
-            logger.error("seedcracker couldn't save structures", e);
+            logger.error("Lucent Pipeline couldn't save local data", e);
         }
     }
 
@@ -73,24 +73,19 @@ public class StructureSave {
                 }
             }
         } catch (FileNotFoundException e) {
-            logger.warn("seedcracker couldn't find a structures file");
+            logger.warn("Lucent Pipeline couldn't find a local data file");
             return result;
         } catch (IOException e) {
-            logger.error("seedcracker couldn't load previous structures", e);
+            logger.error("Lucent Pipeline couldn't load local data", e);
         }
         return result;
     }
 
-    /**
-     * Use information already delivered in the login/respawn packets as the
-     * local persistence key. This avoids touching the live connection or its
-     * remote address merely to name a local file.
-     */
     private static String getWorldName() {
         HashedSeedData hashedSeedData = SeedCracker.get().getDataStorage().hashedSeedData;
         if (hashedSeedData == null) {
             return "unknown-world.txt";
         }
-        return "hashed-seed-" + Long.toUnsignedString(hashedSeedData.getHashedSeed()) + ".txt";
+        return "world-cache-" + Long.toUnsignedString(hashedSeedData.getHashedSeed()) + ".txt";
     }
 }
