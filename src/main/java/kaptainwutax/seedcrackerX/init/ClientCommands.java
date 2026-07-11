@@ -13,7 +13,7 @@ import java.util.List;
 
 public class ClientCommands {
 
-    public static final String PREFIX = "seedcracker";
+    public static final String PREFIX = "lucent";
     public static final List<ClientCommand> COMMANDS = new ArrayList<>();
 
     public static FinderCommand FINDER;
