@@ -40,12 +40,22 @@ public class Config {
     public RenderType render = RenderType.XRAY;
     public boolean active = true;
     public boolean debug = false;
-    public boolean antiXrayBypass = true;
+
+    /**
+     * Retained for compatibility with older config files. The passive build
+     * always forces this off because the upstream implementation sends
+     * serverbound block-action packets.
+     */
+    public boolean antiXrayBypass = false;
+
     private MCVersion version = MCVersion.latest();
+
+    /** Retained for config compatibility; networking is removed in this fork. */
     public boolean databaseSubmits = false;
     public boolean anonymusSubmits = false;
 
     public static void save() {
+        enforcePassiveMode();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         // make sure that the config directory exists
         file.getParentFile().mkdirs();
@@ -60,14 +70,29 @@ public class Config {
     public static void load() {
         Gson gson = new Gson();
 
-        if (!file.exists()) return;
+        if (!file.exists()) {
+            enforcePassiveMode();
+            return;
+        }
 
         try (Reader reader = new FileReader(file)) {
             INSTANCE = gson.fromJson(reader, Config.class);
+            if (INSTANCE == null) {
+                INSTANCE = new Config();
+            }
         } catch (Exception e) {
             logger.error("seedcracker couldn't load config, deleting it...", e);
             file.delete();
+            INSTANCE = new Config();
         }
+
+        enforcePassiveMode();
+    }
+
+    private static void enforcePassiveMode() {
+        INSTANCE.antiXrayBypass = false;
+        INSTANCE.databaseSubmits = false;
+        INSTANCE.anonymusSubmits = false;
     }
 
     public static Config get() {
