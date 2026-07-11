@@ -2,7 +2,6 @@ package kaptainwutax.seedcrackerX.config;
 
 import com.seedfinding.mccore.version.MCVersion;
 import kaptainwutax.seedcrackerX.SeedCracker;
-import kaptainwutax.seedcrackerX.command.DatabaseCommand;
 import kaptainwutax.seedcrackerX.cracker.HashedSeedData;
 import kaptainwutax.seedcrackerX.finder.Finder;
 import me.shedaniel.clothconfig2.api.ConfigBuilder;
@@ -10,11 +9,8 @@ import me.shedaniel.clothconfig2.api.ConfigCategory;
 import me.shedaniel.clothconfig2.api.ConfigEntryBuilder;
 import me.shedaniel.clothconfig2.impl.builders.DropdownMenuBuilder;
 import me.shedaniel.clothconfig2.impl.builders.SubCategoryBuilder;
-import net.minecraft.ChatFormatting;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.ClickEvent;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.HoverEvent;
 import net.minecraft.resources.Identifier;
 
 import java.util.ArrayList;
@@ -54,16 +50,6 @@ public class ConfigScreen {
         ConfigCategory settings = builder.getOrCreateCategory(Component.translatable("settings"));
 
         settings.addEntry(eb.startBooleanToggle(Component.translatable("settings.active"), config.active).setSaveConsumer(val -> config.active = val).build());
-        settings.addEntry(eb.startBooleanToggle(Component.translatable("settings.database"), config.databaseSubmits)
-                .setSaveConsumer(val -> config.databaseSubmits = val).build());
-        settings.addEntry(eb.startBooleanToggle(Component.translatable("settings.hideNameDatabase"), config.anonymusSubmits).setSaveConsumer(val -> config.anonymusSubmits = val).build());
-        settings.addEntry(eb.startTextDescription(Component.translatable("settings.openDatabase").withStyle(s -> s
-                .withClickEvent(new ClickEvent.OpenUrl(DatabaseCommand.DATABASE_URL))
-                .withHoverEvent(new HoverEvent.ShowText(Component.literal("google sheet")))
-                .withColor(ChatFormatting.BLUE)
-                .withUnderlined(true)
-                .withItalic(true)))
-                .build());
         settings.addEntry(eb.startDropdownMenu(Component.translatable("settings.version"), DropdownMenuBuilder.TopCellElementBuilder.of(config.getVersion(), this::mcVersionFromString))
                 .setSelections(getSupportedVersions())
                 .setSuggestionMode(false)
@@ -82,11 +68,6 @@ public class ConfigScreen {
         for (Finder.Type finder : Finder.Type.values()) {
             settings.addEntry(eb.startBooleanToggle(Component.translatable(finder.nameKey), finder.enabled.get()).setSaveConsumer(val -> finder.enabled.set(val)).build());
         }
-
-        settings.addEntry(eb.startTextDescription(Component.literal("==============")).build());
-
-        settings.addEntry(eb.startBooleanToggle(Component.translatable("settings.antiXrayMode"), config.antiXrayBypass).setSaveConsumer(val -> config.antiXrayBypass = val).build());
-        settings.addEntry(eb.startTextDescription(Component.translatable("settings.antiAntiXrayExplained")).build());
 
         //=============================INFO========================
         ConfigCategory info = builder.getOrCreateCategory(Component.translatable("info"));
