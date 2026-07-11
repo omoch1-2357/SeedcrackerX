@@ -1,16 +1,21 @@
 package kaptainwutax.seedcrackerX.finder;
 
 import com.mojang.datafixers.util.Pair;
-import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
-import net.minecraft.core.Direction;
-import net.minecraft.network.protocol.game.ServerboundPlayerActionPacket;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Queue;
 
+/**
+ * Passive local-only queue.
+ *
+ * Upstream used ServerboundPlayerActionPacket packets here to force block
+ * updates for an anti-xray bypass. This fork deliberately never sends packets
+ * to the server. The queue is retained only for binary/source compatibility;
+ * callers should not rely on active probing.
+ */
 public class BlockUpdateQueue {
     private final Queue<Pair<Thread, ArrayList<BlockPos>>> blocksAndAction = new LinkedList<>();
     private final HashSet<BlockPos> alreadyChecked = new HashSet<>();
@@ -24,28 +29,8 @@ public class BlockUpdateQueue {
     }
 
     public void tick() {
-        if (blocksAndAction.isEmpty()) return;
-
-        Pair<Thread, ArrayList<BlockPos>> current = blocksAndAction.peek();
-        ArrayList<BlockPos> currentBlocks = current.getSecond();
-        for (int i = 0; i < 5; i++) {
-            if (currentBlocks.isEmpty()) {
-                current.getFirst().start();
-                blocksAndAction.remove();
-                if (blocksAndAction.isEmpty()) {
-                    return;
-                } else {
-                    current = blocksAndAction.peek();
-                    currentBlocks = current.getSecond();
-                }
-            }
-            if (Minecraft.getInstance().getConnection() == null) {
-                blocksAndAction.clear();
-                return;
-            }
-            ServerboundPlayerActionPacket p = new ServerboundPlayerActionPacket(ServerboundPlayerActionPacket.Action.ABORT_DESTROY_BLOCK, currentBlocks.remove(0),
-                    Direction.DOWN);
-            Minecraft.getInstance().getConnection().send(p);
-        }
+        // Intentionally do nothing. Active block-update probing would require
+        // sending serverbound packets, which is forbidden in this fork.
+        blocksAndAction.clear();
     }
 }
