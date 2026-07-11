@@ -15,8 +15,6 @@ loom {
 }
 
 repositories {
-	maven { url "https://maven.terraformersmc.com/releases" }
-	maven { url "https://maven.shedaniel.me/" }
 	maven { url "https://maven.latticg.com/" }
 	maven { url "https://maven.seedfinding.com/" }
 	maven { url "https://maven-snapshots.seedfinding.com/" }
@@ -30,8 +28,9 @@ dependencies {
 	minecraft "com.mojang:minecraft:${project.minecraft_version}"
 
     implementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_api_version}"
 
+	// Only the Fabric API modules used by this project are bundled. Do not pull
+	// in the aggregate fabric-api dependency or networking modules.
 	include implementation(fabricApi.module("fabric-api-base", project.fabric_api_version))
 	include implementation(fabricApi.module("fabric-transitive-access-wideners-v1", project.fabric_api_version))
 	include implementation(fabricApi.module("fabric-command-api-v2", project.fabric_api_version))
@@ -39,13 +38,6 @@ dependencies {
 	include implementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_api_version))
 	include implementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_api_version))
 	include implementation(fabricApi.module("fabric-resource-loader-v1", project.fabric_api_version))
-
-	api("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}") {
-		exclude(group: "net.fabricmc.fabric-api")
-	}
-	include("me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}")
-
-	// modImplementation ("com.terraformersmc:modmenu:${project.modmenu_version}") {transitive = false}
 
 	include implementation("com.seedfinding:mc_math:${project.seedfinding_math_version}") { transitive = false }
 	include implementation("com.seedfinding:mc_seed:${project.seedfinding_seed_version}") { transitive = false }
@@ -57,13 +49,6 @@ dependencies {
 	include implementation("com.seedfinding:mc_reversal:${project.seedfinding_reversal_version}") { transitive = false }
 
 	include implementation("com.seedfinding:latticg:${project.latticg_version}")
-
-//	modRuntimeOnly("me.djtheredstoner:DevAuth-fabric:${project.devauth_version}") {
-//		exclude group: 'net.fabricmc', module: 'fabric-loader'
-//	}
-//	productionRuntimeMods("me.djtheredstoner:DevAuth-fabric:${project.devauth_version}") {
-//		exclude group: 'net.fabricmc', module: 'fabric-loader'
-//	}
 }
 
 processResources {
