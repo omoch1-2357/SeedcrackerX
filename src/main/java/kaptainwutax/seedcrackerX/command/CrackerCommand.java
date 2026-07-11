@@ -6,7 +6,7 @@ import kaptainwutax.seedcrackerX.util.Log;
 import net.fabricmc.fabric.api.client.command.v2.FabricClientCommandSource;
 import net.minecraft.ChatFormatting;
 
-import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.*;
+import static net.fabricmc.fabric.api.client.command.v2.ClientCommands.literal;
 
 public class CrackerCommand extends ClientCommand {
 
@@ -20,11 +20,6 @@ public class CrackerCommand extends ClientCommand {
         builder.then(literal("ON").executes(context -> this.setActive(true)))
                 .then(literal("OFF").executes(context -> this.setActive(false)))
                 .executes(context -> this.toggleActive());
-
-        builder.then(literal("debug")
-                .then(literal("ON").executes(context -> this.setDebug(true)))
-                .then(literal("OFF").executes(context -> this.setDebug(false)))
-                .executes(context -> this.toggleDebug()));
     }
 
     private void feedback(boolean success, boolean flag) {
@@ -46,18 +41,6 @@ public class CrackerCommand extends ClientCommand {
     private int toggleActive() {
         Config.get().active = !Config.get().active;
         feedback(true, Config.get().active);
-        return 0;
-    }
-
-    private int setDebug(boolean flag) {
-        feedback(Config.get().debug != flag, flag);
-        Config.get().debug = flag;
-        return 0;
-    }
-
-    private int toggleDebug() {
-        Config.get().debug = !Config.get().debug;
-        feedback(true, Config.get().debug);
         return 0;
     }
 }
