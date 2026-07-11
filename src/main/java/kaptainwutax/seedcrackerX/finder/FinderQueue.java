@@ -14,24 +14,11 @@ import java.util.stream.Collectors;
 
 public class FinderQueue {
 
-    private final static FinderQueue INSTANCE = new FinderQueue();
+    private static final FinderQueue INSTANCE = new FinderQueue();
     private static final Logger log = LoggerFactory.getLogger(FinderQueue.class);
-    public static ExecutorService SERVICE = Executors.newFixedThreadPool(5);
-
-    public FinderControl finderControl = new FinderControl();
+    public static final ExecutorService SERVICE = Executors.newFixedThreadPool(5);
 
     private FinderQueue() {
-        this.clear();
-    }
-
-    /**
-     * The local-only build intentionally does not register Fabric rendering
-     * callbacks. Structure discovery is driven by received chunk data; outline
-     * rendering is cosmetic and would require several additional bundled
-     * Fabric API modules.
-     */
-    public static void registerEvents() {
-        // No-op by design.
     }
 
     public static FinderQueue get() {
@@ -41,31 +28,23 @@ public class FinderQueue {
     public void onChunkData(Level world, ChunkPos chunkPos) {
         if (!Config.get().active) return;
 
-        getActiveFinderTypes().forEach(type -> {
-            SERVICE.submit(() -> {
-                try {
-                    List<Finder> finders = type.finderBuilder.build(world, chunkPos);
-
-                    finders.forEach(finder -> {
-                        if (finder.isValidDimension(world.dimensionType())) {
-                            finder.findInChunk();
-                            this.finderControl.addFinder(type, finder);
-                        }
-                    });
-                } catch (Exception e) {
-                    log.error("SeedCrackerX finder failed", e);
+        getActiveFinderTypes().forEach(type -> SERVICE.submit(() -> {
+            try {
+                List<Finder> finders = type.finderBuilder.build(world, chunkPos);
+                for (Finder finder : finders) {
+                    if (finder.isValidDimension(world.dimensionType())) {
+                        finder.findInChunk();
+                    }
                 }
-            });
-        });
+            } catch (Exception e) {
+                log.error("Lucent Pipeline seed finder failed", e);
+            }
+        }));
     }
 
     public List<Finder.Type> getActiveFinderTypes() {
         return Arrays.stream(Finder.Type.values())
                 .filter(type -> type.enabled.get())
                 .collect(Collectors.toList());
-    }
-
-    public void clear() {
-        this.finderControl = new FinderControl();
     }
 }
