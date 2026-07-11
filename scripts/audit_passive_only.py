@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Fail the build if SeedcrackerX source reintroduces active outbound I/O.
+"""Fail closed if SeedcrackerX source reintroduces active outbound I/O.
 
 This intentionally audits the mod's own Java source. Normal Minecraft/Fabric
 networking performed by the game and loader is outside this source tree and is
