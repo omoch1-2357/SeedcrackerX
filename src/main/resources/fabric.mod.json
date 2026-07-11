@@ -1,8 +1,9 @@
 {
   "schemaVersion": 1,
-  "id": "seedcrackerx",
+  "id": "lucent_pipeline",
   "version": "${version}",
-  "name": "SeedCrackerX",
+  "name": "Lucent Pipeline",
+  "description": "Client-side rendering pipeline and visual tooling.",
   "license": "MIT",
   "environment": "client",
   "entrypoints": {
