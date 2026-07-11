@@ -1,27 +1,15 @@
 package kaptainwutax.seedcrackerX;
 
 import com.mojang.logging.LogUtils;
-import kaptainwutax.seedcrackerX.api.SeedCrackerAPI;
 import kaptainwutax.seedcrackerX.config.Config;
 import kaptainwutax.seedcrackerX.cracker.storage.DataStorage;
-import kaptainwutax.seedcrackerX.finder.FinderQueue;
 import kaptainwutax.seedcrackerX.init.ClientCommands;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.client.command.v2.ClientCommandRegistrationCallback;
 import org.slf4j.Logger;
 
-import java.util.ArrayList;
-
 public class SeedCracker implements ModInitializer {
     public static final Logger LOGGER = LogUtils.getLogger();
-
-    /**
-     * Kept for source/binary compatibility with the existing API. The
-     * local-only build deliberately does not discover third-party
-     * "seedcrackerx" entrypoints, so no other mod is automatically handed a
-     * cracked world seed.
-     */
-    public static final ArrayList<SeedCrackerAPI> entrypoints = new ArrayList<>();
 
     private static SeedCracker INSTANCE;
     private final DataStorage dataStorage = new DataStorage();
@@ -35,9 +23,6 @@ public class SeedCracker implements ModInitializer {
         INSTANCE = this;
         Config.load();
         Features.init(Config.get().getVersion());
-
-        FinderQueue.registerEvents();
-
         ClientCommandRegistrationCallback.EVENT.register((dispatcher, registryAccess) -> ClientCommands.registerCommands(dispatcher));
     }
 
@@ -46,7 +31,6 @@ public class SeedCracker implements ModInitializer {
     }
 
     public void reset() {
-        SeedCracker.get().getDataStorage().clear();
-        FinderQueue.get().finderControl.deleteFinders();
+        this.dataStorage.clear();
     }
 }
