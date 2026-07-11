@@ -36,8 +36,6 @@ dependencies {
 	include implementation(fabricApi.module("fabric-command-api-v2", project.fabric_api_version))
 	include implementation(fabricApi.module("fabric-rendering-v1", project.fabric_api_version))
 	include implementation(fabricApi.module("fabric-lifecycle-events-v1", project.fabric_api_version))
-	include implementation(fabricApi.module("fabric-resource-loader-v0", project.fabric_api_version))
-	include implementation(fabricApi.module("fabric-resource-loader-v1", project.fabric_api_version))
 
 	include implementation("com.seedfinding:mc_math:${project.seedfinding_math_version}") { transitive = false }
 	include implementation("com.seedfinding:mc_seed:${project.seedfinding_seed_version}") { transitive = false }
