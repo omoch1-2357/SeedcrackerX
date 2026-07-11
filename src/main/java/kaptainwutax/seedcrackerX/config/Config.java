@@ -1,6 +1,5 @@
 package kaptainwutax.seedcrackerX.config;
 
-
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.seedfinding.mccore.version.MCVersion;
@@ -18,7 +17,7 @@ import java.io.Reader;
 public class Config {
     private static final Logger logger = LoggerFactory.getLogger("config");
 
-    private static final File file = new File(net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().toFile(), "seedcracker.json");
+    private static final File file = new File(net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().toFile(), "lucent-pipeline.json");
     private static Config INSTANCE = new Config();
     public FeatureToggle buriedTreasure = new FeatureToggle(true);
     public FeatureToggle desertTemple = new FeatureToggle(true);
@@ -57,13 +56,12 @@ public class Config {
     public static void save() {
         enforcePassiveMode();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
-        // make sure that the config directory exists
         file.getParentFile().mkdirs();
 
         try (FileWriter writer = new FileWriter(file)) {
             gson.toJson(INSTANCE, writer);
         } catch (IOException e) {
-            logger.error("seedcracker couldn't save config", e);
+            logger.error("Lucent Pipeline couldn't save config", e);
         }
     }
 
@@ -81,7 +79,7 @@ public class Config {
                 INSTANCE = new Config();
             }
         } catch (Exception e) {
-            logger.error("seedcracker couldn't load config, deleting it...", e);
+            logger.error("Lucent Pipeline couldn't load config, deleting it...", e);
             file.delete();
             INSTANCE = new Config();
         }
