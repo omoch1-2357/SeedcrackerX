@@ -19,6 +19,7 @@ public class Config {
 
     private static final File file = new File(net.fabricmc.loader.api.FabricLoader.getInstance().getConfigDir().toFile(), "lucent-pipeline.json");
     private static Config INSTANCE = new Config();
+
     public FeatureToggle buriedTreasure = new FeatureToggle(true);
     public FeatureToggle desertTemple = new FeatureToggle(true);
     public FeatureToggle endCity = new FeatureToggle(true);
@@ -36,25 +37,23 @@ public class Config {
     public FeatureToggle desertWell = new FeatureToggle(false);
     public FeatureToggle warpedFungus = new FeatureToggle(false);
     public FeatureToggle biome = new FeatureToggle(false);
-    public RenderType render = RenderType.XRAY;
-    public boolean active = true;
-    public boolean debug = false;
 
-    /**
-     * Retained for compatibility with older config files. The passive build
-     * always forces this off because the upstream implementation sends
-     * serverbound block-action packets.
-     */
-    public boolean antiXrayBypass = false;
+    public boolean active = true;
+
+    // Internal diagnostic flag retained for compatibility with the cracking
+    // core. There is no command or UI that enables it in this build.
+    public boolean debug = false;
 
     private MCVersion version = MCVersion.latest();
 
-    /** Retained for config compatibility; networking is removed in this fork. */
+    // Retained only because the upstream cracking core still references these
+    // fields. Network/database implementations are absent and these values are
+    // forced false on every load/save.
     public boolean databaseSubmits = false;
     public boolean anonymusSubmits = false;
 
     public static void save() {
-        enforcePassiveMode();
+        enforceLocalOnlyMode();
         Gson gson = new GsonBuilder().setPrettyPrinting().create();
         file.getParentFile().mkdirs();
 
@@ -69,28 +68,26 @@ public class Config {
         Gson gson = new Gson();
 
         if (!file.exists()) {
-            enforcePassiveMode();
+            enforceLocalOnlyMode();
             return;
         }
 
         try (Reader reader = new FileReader(file)) {
             INSTANCE = gson.fromJson(reader, Config.class);
-            if (INSTANCE == null) {
-                INSTANCE = new Config();
-            }
+            if (INSTANCE == null) INSTANCE = new Config();
         } catch (Exception e) {
             logger.error("Lucent Pipeline couldn't load config, deleting it...", e);
             file.delete();
             INSTANCE = new Config();
         }
 
-        enforcePassiveMode();
+        enforceLocalOnlyMode();
     }
 
-    private static void enforcePassiveMode() {
-        INSTANCE.antiXrayBypass = false;
+    private static void enforceLocalOnlyMode() {
         INSTANCE.databaseSubmits = false;
         INSTANCE.anonymusSubmits = false;
+        INSTANCE.debug = false;
     }
 
     public static Config get() {
@@ -105,9 +102,5 @@ public class Config {
         if (this.version == version) return;
         this.version = version;
         Features.init(version);
-    }
-
-    public enum RenderType {
-        OFF, ON, XRAY
     }
 }
