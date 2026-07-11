@@ -18,8 +18,6 @@
   "entrypoints": {
     "main": [
       "kaptainwutax.seedcrackerX.SeedCracker"
-    ],
-    "modmenu": [
     ]
   },
   "mixins": [
@@ -34,11 +32,6 @@
     "fabric-command-api-v2": "*",
     "fabric-rendering-v1": "*",
     "fabric-resource-loader-v0": "*",
-    "fabric-resource-loader-v1": "*",
-    "cloth-config": "*"
-  },
-  "suggests": {
-    "flamingo": "*",
-    "modmenu": "*"
+    "fabric-resource-loader-v1": "*"
   }
 }
