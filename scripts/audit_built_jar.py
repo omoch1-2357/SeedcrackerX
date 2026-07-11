@@ -1,11 +1,5 @@
 #!/usr/bin/env python3
-"""Audit the produced SeedcrackerX JAR and its nested mod surface.
-
-The source audit catches obvious regressions before compilation. This audit
-checks what is actually packaged: the client-only metadata, nested Fabric mods,
-and forbidden outbound/networking/discovery symbols in SeedcrackerX's own
-class files.
-"""
+"""Audit the produced Lucent Pipeline JAR for seed-only behavior."""
 
 from __future__ import annotations
 
@@ -36,6 +30,14 @@ FORBIDDEN_CLASS_TOKENS = (
     b"DatagramSocket",
     b"http://",
     b"https://",
+    b"BlockUpdateQueue",
+    b"antiXrayBypass",
+    b"AntiXRay",
+    b"blockUpdateExploit",
+    b"ConfigScreen",
+    b"ScModMenuEntry",
+    b"FinderControl",
+    b"shouldRender",
 )
 
 ALLOWED_FABRIC_NESTED_MOD_IDS = {
