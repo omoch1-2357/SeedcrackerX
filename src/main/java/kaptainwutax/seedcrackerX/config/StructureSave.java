@@ -4,12 +4,11 @@ import com.seedfinding.mcfeature.Feature;
 import com.seedfinding.mcfeature.structure.RegionStructure;
 import com.seedfinding.mcfeature.structure.Structure;
 import kaptainwutax.seedcrackerX.Features;
+import kaptainwutax.seedcrackerX.SeedCracker;
+import kaptainwutax.seedcrackerX.cracker.HashedSeedData;
 import kaptainwutax.seedcrackerX.cracker.storage.DataStorage;
 import kaptainwutax.seedcrackerX.cracker.storage.ScheduledSet;
 import net.fabricmc.loader.api.FabricLoader;
-import net.minecraft.client.Minecraft;
-import net.minecraft.network.Connection;
-import net.minecraft.world.level.storage.LevelResource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,9 +24,9 @@ import java.util.List;
 import java.util.Scanner;
 
 public class StructureSave {
-    private static final Logger logger = LoggerFactory.getLogger("structureSave");
+    private static final Logger logger = LoggerFactory.getLogger("lucentPipelineStorage");
 
-    public static final Path saveDir = Paths.get(FabricLoader.getInstance().getConfigDir().toFile().toString(), "SeedCrackerX saved structures");
+    public static final Path saveDir = Paths.get(FabricLoader.getInstance().getConfigDir().toFile().toString(), "Lucent Pipeline data");
 
     public static void saveStructures(ScheduledSet<DataStorage.Entry<Feature.Data<?>>> baseData) {
         try {
@@ -47,7 +46,7 @@ public class StructureSave {
                 }
             }
         } catch (IOException e) {
-            logger.error("seedcracker couldn't save structures", e);
+            logger.error("Lucent Pipeline couldn't save local data", e);
         }
     }
 
@@ -65,34 +64,28 @@ public class StructureSave {
                     String[] info = line.split(";");
                     if (info.length != 3) continue;
                     String structureName = info[0];
-                    for (RegionStructure<?,?> idk : Features.STRUCTURE_TYPES) {
-                        if (structureName.equals(idk.getName())) {
-                            result.add(idk.at(Integer.parseInt(info[1]), Integer.parseInt(info[2])));
+                    for (RegionStructure<?,?> structure : Features.STRUCTURE_TYPES) {
+                        if (structureName.equals(structure.getName())) {
+                            result.add(structure.at(Integer.parseInt(info[1]), Integer.parseInt(info[2])));
                             break;
                         }
                     }
                 }
             }
         } catch (FileNotFoundException e) {
-            logger.warn("seedcracker couldn't find a structures file");
+            logger.warn("Lucent Pipeline couldn't find a local data file");
             return result;
         } catch (IOException e) {
-            logger.error("seedcracker couldn't load previous structures", e);
+            logger.error("Lucent Pipeline couldn't load local data", e);
         }
         return result;
     }
 
     private static String getWorldName() {
-        Minecraft minecraftClient = Minecraft.getInstance();
-        if (minecraftClient.getConnection() != null) {
-            Connection connection = minecraftClient.getConnection().getConnection();
-            if (connection.isMemoryConnection()) {
-                String address = minecraftClient.getSingleplayerServer().getWorldPath(LevelResource.ROOT).getParent().getFileName().toString();
-                return address.replace("/","_").replace(":", "_")+".txt";
-            } else {
-                return connection.getRemoteAddress().toString().replace("/","_").replace(":","_")+".txt";
-            }
+        HashedSeedData hashedSeedData = SeedCracker.get().getDataStorage().hashedSeedData;
+        if (hashedSeedData == null) {
+            return "unknown-world.txt";
         }
-        return "Invalid.txt";
+        return "world-cache-" + Long.toUnsignedString(hashedSeedData.getHashedSeed()) + ".txt";
     }
 }

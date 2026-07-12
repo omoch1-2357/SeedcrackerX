@@ -16,7 +16,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.dimension.DimensionType;
-import net.minecraft.world.phys.Vec3;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +40,12 @@ public abstract class Finder {
     }
 
     protected Minecraft mc = Minecraft.getInstance();
+
+    // Legacy geometry collection retained only because individual seed finders
+    // still construct these markers while extracting structure positions. No
+    // renderer or display controller consumes them in this build.
     protected final List<Cuboid> cuboids = new ArrayList<>();
+
     protected Level world;
     protected ChunkPos chunkPos;
 
@@ -52,13 +56,9 @@ public abstract class Finder {
 
     public static List<BlockPos> buildSearchPositions(List<BlockPos> base, Predicate<BlockPos> removeIf) {
         List<BlockPos> newList = new ArrayList<>();
-
         for (BlockPos pos : base) {
-            if (!removeIf.test(pos)) {
-                newList.add(pos);
-            }
+            if (!removeIf.test(pos)) newList.add(pos);
         }
-
         return newList;
     }
 
@@ -71,28 +71,6 @@ public abstract class Finder {
     }
 
     public abstract List<BlockPos> findInChunk();
-
-    public boolean shouldRender() {
-        DimensionType finderDim = this.world.dimensionType();
-        DimensionType playerDim = mc.player.level().dimensionType();
-
-        if (finderDim != playerDim) return false;
-
-        int renderDistance = mc.options.renderDistance().get() * 16 + 16;
-        Vec3 playerPos = mc.player.position();
-
-        for (Cuboid cuboid : this.cuboids) {
-            BlockPos pos = cuboid.getCenterPos();
-            double distance = playerPos.distanceToSqr(pos.getX(), playerPos.y, pos.getZ());
-            if (distance <= renderDistance * renderDistance + 32) return true;
-        }
-
-        return false;
-    }
-
-    public boolean isUseless() {
-        return this.cuboids.isEmpty();
-    }
 
     public abstract boolean isValidDimension(DimensionType dimension);
 

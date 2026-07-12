@@ -1,15 +1,16 @@
 package kaptainwutax.seedcrackerX.render;
 
-import com.mojang.blaze3d.vertex.PoseStack;
-import net.minecraft.client.Camera;
-import net.minecraft.client.renderer.SubmitNodeCollector;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Vec3i;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
 import net.minecraft.world.phys.AABB;
-import net.minecraft.world.phys.shapes.Shapes;
-import net.minecraft.world.phys.shapes.VoxelShape;
 
+/**
+ * Lightweight structure marker retained for finder bookkeeping.
+ *
+ * The local-only build does not render finder outlines, so this class stores
+ * only the geometry required by existing finder code.
+ */
 public class Cuboid {
     private final AABB box;
     private final int argb;
@@ -37,12 +38,11 @@ public class Cuboid {
         return this.centerPos;
     }
 
-    public Cuboid offset(Camera camera) {
-        return new Cuboid(this.box.move(camera.position().scale(-1)), this.argb);
+    public AABB getBox() {
+        return this.box;
     }
 
-    public void render(PoseStack poseStack, SubmitNodeCollector submitter) {
-        VoxelShape shape = Shapes.box(this.box.minX, this.box.minY, this.box.minZ, this.box.maxX, this.box.maxY, this.box.maxZ);
-        submitter.submitShapeOutline(poseStack, shape, NoDepthLayer.LINES_NO_DEPTH_LAYER, this.argb, 2, true);
+    public int getArgb() {
+        return this.argb;
     }
 }
