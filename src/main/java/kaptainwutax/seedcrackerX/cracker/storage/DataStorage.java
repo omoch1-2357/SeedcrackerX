@@ -119,6 +119,14 @@ public class DataStorage {
         return this.timeMachine;
     }
 
+    public int getObservationCount() {
+        return this.baseSeedData.size();
+    }
+
+    public int getBiomeObservationCount() {
+        return this.biomeSeedData.size();
+    }
+
     public double getBaseBits() {
         double bits = 0.0D;
         for (Entry<Feature.Data<?>> e : this.baseSeedData) {
